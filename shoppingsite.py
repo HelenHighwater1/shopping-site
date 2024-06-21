@@ -6,10 +6,11 @@ put melons in a shopping cart.
 Authors: Joel Burton, Christian Fernandez, Meggie Mahnken, Katie Byers.
 """
 
-from flask import Flask, render_template, redirect, flash, session
+from flask import Flask, request, render_template, redirect, flash, session
 import jinja2
 
 import melons
+import customers
 
 app = Flask(__name__)
 
@@ -117,9 +118,9 @@ def show_shopping_cart():
     #    x get the corresponding Melon object
     #    x compute the total cost for that type of melon
     #    x add this to the order total
-    #    - add quantity and total cost as attributes on the Melon object
-    #    - add the Melon object to the list created above
-    # - pass the total order cost and the list of Melon objects to the template
+    #    x add quantity and total cost as attributes on the Melon object
+    #    x add the Melon object to the list created above
+    # x pass the total order cost and the list of Melon objects to the template
     #
     # Make sure your function can also handle the case wherein no cart has
     # been added to the session
@@ -143,6 +144,22 @@ def process_login():
     Find the user's login credentials located in the 'request.form'
     dictionary, look up the user, and store them in the session.
     """
+    email = request.form.get('email')
+    password = request.form.get('password')
+
+    customer = customers.get_customer_by_email(email)
+
+    if customer != None:
+        if customer.password == password:
+            session['customer'] = email
+            print('xXXXXXXXXXXXX', session)
+            flash("You've logged in!")
+            return redirect('/melons')
+    else:
+        flash('sorry - email/password did not match')
+        return redirect('/login')
+
+
 
     # TODO: Need to implement this!
 
@@ -158,7 +175,11 @@ def process_login():
     # - if they don't, flash a failure message and redirect back to "/login"
     # - do the same if a Customer with that email doesn't exist
 
-    return "Oops! This needs to be implemented"
+@app.route("/logout")
+def logout():
+    del session['customer']
+    flash('you are now logged out')
+    return redirect('/melons')
 
 
 @app.route("/checkout")
